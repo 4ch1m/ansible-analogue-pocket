@@ -1,0 +1,28 @@
+- name: Create cache directory
+  ansible.builtin.file:
+    path: "{{ openfpga_cores_cache_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Query API
+  ansible.builtin.uri:
+    url: "{{ openfpga_cores_inventory_api_url }}"
+    return_content: true
+  register: openfpga_cores_inventory_api_query
+
+- name: Parse JSON-response from API
+  ansible.builtin.set_fact:
+    openfpga_cores_details: "{{ openfpga_cores_inventory_api_query.content | from_json }}"
+
+- name: Validate API response
+  ansible.builtin.assert:
+    that:
+      - openfpga_cores_details.data is defined
+      - openfpga_cores_details.data | length > 0
+
+- name: Process 'OpenFPGA Core' items
+  ansible.builtin.include_tasks: openfpga_core.yml
+  loop: "{{ openfpga_cores_details.data }}"
+  loop_control:
+    label: "{{ item.identifier }}"
+  when: not (item.identifier in (custom_openfpga_core_excludes | default([])))

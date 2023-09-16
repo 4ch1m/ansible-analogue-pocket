@@ -1,0 +1,42 @@
+- name: Create cache directory
+  ansible.builtin.file:
+    path: "{{ megazxretro_platform_art_cache_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Load cached JSON file for latest releases
+  ansible.builtin.set_fact:
+    megazxretro_platform_art_releases_json_content: >-
+      {{
+      lookup('ansible.builtin.file', [megazxretro_platform_art_cache_dir, megazxretro_platform_art_releases_json_filename] | path_join)
+      |
+      from_json
+      }}
+  when: ([megazxretro_platform_art_cache_dir, megazxretro_platform_art_releases_json_filename] | path_join) is exists
+
+- name: Query API for latest releases
+  ansible.builtin.uri:
+    url: "{{ megazxretro_platform_art_releases_url }}"
+    return_content: true
+  register: megazxretro_platform_art_releases_url_response
+
+- name: Parse API response
+  ansible.builtin.set_fact:
+    megazxretro_platform_art_releases_details: "{{ megazxretro_platform_art_releases_url_response.content | from_json }}"
+
+- name: Validate API response
+  ansible.builtin.assert:
+    that:
+      - megazxretro_platform_art_releases_details.published_at is defined
+      - megazxretro_platform_art_releases_details.assets is defined
+
+- name: Handle assets
+  ansible.builtin.include_tasks: handle_asset.yml
+  loop: "{{ megazxretro_platform_art_releases_details.assets }}"
+  when: (custom_megazxretro_platform_art_region_filename | default('PAL-EU.zip')) in item.browser_download_url
+
+- name: Create cached JSON file for latest releases
+  ansible.builtin.copy:
+    content: "{{ megazxretro_platform_art_releases_details | to_nice_json(indent=2) }}"
+    dest: "{{ [megazxretro_platform_art_cache_dir, megazxretro_platform_art_releases_json_filename] | path_join }}"
+    mode: "0644"

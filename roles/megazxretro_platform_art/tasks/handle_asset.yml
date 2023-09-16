@@ -1,0 +1,49 @@
+- name: "Download asset '{{ item.browser_download_url }}'"
+  ansible.builtin.get_url:
+    url: "{{ item.browser_download_url }}"
+    dest: "{{ [megazxretro_platform_art_cache_dir, (item.browser_download_url | basename)] | path_join }}"
+    mode: "0644"
+  register: megazxretro_platform_art_asset_download
+  when: >-
+    not (([megazxretro_platform_art_cache_dir, (item.browser_download_url | basename)] | path_join) is exists)
+    or
+    (
+    megazxretro_platform_art_releases_json_content is defined
+    and
+    (megazxretro_platform_art_releases_json_content.published_at != megazxretro_platform_art_releases_details.published_at)
+    )
+
+- name: Create temporary directory
+  ansible.builtin.tempfile:
+    state: directory
+  register: megazxretro_platform_art_temp_dir
+
+- name: Extract region asset
+  ansible.builtin.unarchive:
+    src: >-
+      {{
+      [megazxretro_platform_art_cache_dir, (custom_megazxretro_platform_art_region_filename | default('PAL-EU.zip'))]
+      |
+      path_join
+      }}
+    dest: "{{ megazxretro_platform_art_temp_dir.path }}"
+
+- name: Find 'Platforms' directory
+  ansible.builtin.find:
+    paths: "{{ megazxretro_platform_art_temp_dir.path }}"
+    patterns: "Platforms"
+    file_type: directory
+    recurse: true
+  register: megazxretro_platform_art_platforms_dir
+
+- name: Sync 'Platforms' directory
+  ansible.posix.synchronize:
+    src: "{{ (megazxretro_platform_art_platforms_dir.files | first).path }}/"
+    dest: "{{ [content_dir.staged_downloads, 'Platforms'] | path_join }}/"
+    delete: false
+  when: megazxretro_platform_art_platforms_dir.matched == 1
+
+- name: Delete temporary directory
+  ansible.builtin.file:
+    path: "{{ megazxretro_platform_art_temp_dir.path }}"
+    state: absent

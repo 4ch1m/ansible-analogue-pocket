@@ -1,0 +1,10 @@
+rsync_excludes:
+  - '--exclude=__MACOSX'
+  - '--exclude=.DS_Store'
+  - '--exclude=.gitkeep'
+  - '--exclude=.keep'
+  #
+  - '--exclude=/jt**.txt'
+  - '--exclude=/Spiritualized_**_readme.txt'
+  - '--exclude=/**.mra'
+  - '--exclude=/**.md'

@@ -1,0 +1,1 @@
+megazxretro_platform_art_cache_dir: "{{ [content_dir.cached_downloads, 'megazxretro_platform_art'] | path_join }}"

@@ -1,0 +1,14 @@
+- name: Create content directory
+  ansible.builtin.file:
+    path: "{{ [playbook_dir, 'content'] | path_join }}"
+    state: directory
+    mode: "0755"
+
+- name: Create content subdirectories
+  ansible.builtin.file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: "0755"
+  loop: "{{ lookup('ansible.builtin.dict', content_dir) }}"
+  loop_control:
+    label: "{{ item.value }}"

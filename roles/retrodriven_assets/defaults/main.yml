@@ -1,0 +1,2 @@
+retrodriven_assets_base_url: https://updater.retrodriven.com
+retrodriven_assets_updater_url: "{{ retrodriven_assets_base_url }}/updater.php"

@@ -1,0 +1,43 @@
+- name: "Create cache directory for core '{{ item.identifier }}'"
+  ansible.builtin.file:
+    path: "{{ [openfpga_cores_cache_dir, item.identifier] | path_join }}"
+    state: directory
+    mode: "0755"
+
+- name: "Load info JSON file for core '{{ item.identifier }}'"
+  ansible.builtin.set_fact:
+    openfpga_core_json_content: >-
+      {{
+      lookup('ansible.builtin.file', [openfpga_cores_cache_dir, item.identifier, openfpga_cores_info_json_filename] | path_join)
+      |
+      from_json
+      }}
+  when: ([openfpga_cores_cache_dir, item.identifier, openfpga_cores_info_json_filename] | path_join) is exists
+
+- name: "Download core '{{ item.identifier }}'"
+  ansible.builtin.get_url:
+    url: "{{ item.download_url }}"
+    dest: "{{ [openfpga_cores_cache_dir, item.identifier, (item.download_url | basename)] | path_join }}"
+    mode: "0644"
+  register: openfpga_core_download
+  when: >-
+    not (([openfpga_cores_cache_dir, item.identifier, (item.download_url | basename)] | path_join) is exists)
+    or
+    ((openfpga_core_json_content is defined) and (openfpga_core_json_content.release_date != item.release_date))
+
+- name: "Create info JSON file for core '{{ item.identifier }}'"
+  ansible.builtin.copy:
+    content: "{{ item | to_nice_json(indent=2) }}"
+    dest: "{{ [openfpga_cores_cache_dir, item.identifier, openfpga_cores_info_json_filename] | path_join }}"
+    mode: "0644"
+  when: openfpga_core_download.changed
+
+- name: "Unarchive '{{ item.download_url | basename }}'"
+  ansible.builtin.command: # NOTE: the "unarchive"-task is pretty unreliable and fails on some archives; so we unzip via command
+    argv:
+      - "unzip"
+      - "-o"
+      - "-d"
+      - "{{ content_dir.staged_downloads }}"
+      - "{{ [openfpga_cores_cache_dir, item.identifier, (item.download_url | basename)] | path_join }}"
+  changed_when: false

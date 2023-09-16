@@ -1,0 +1,42 @@
+- name: Create cache directory
+  ansible.builtin.file:
+    path: "{{ latest_firmware_cache_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Query Analogue webpage
+  ansible.builtin.uri:
+    url: "{{ latest_firmware_url }}"
+    follow_redirects: true
+    return_content: true
+    force: true
+  register: latest_firmware_url_response
+
+- name: Determine download url
+  ansible.builtin.set_fact:
+    latest_firmware_download_url: >-
+      {{
+      latest_firmware_url_response.content
+      |
+      regex_search('"https:\/\/assets\.analogue\.co\/firmware\/[^ ]*"')
+      |
+      regex_replace('"', '')
+      }}
+
+- name: Validate download url
+  ansible.builtin.assert:
+    that:
+      - latest_firmware_download_url is regex("https:\/\/.*\.bin")
+
+- name: "Download '{{ latest_firmware_download_url | basename }}'"
+  ansible.builtin.get_url:
+    url: "{{ latest_firmware_download_url }}"
+    dest: "{{ [latest_firmware_cache_dir, (latest_firmware_download_url | basename)] | path_join }}"
+    mode: "0644"
+  when: not (([latest_firmware_cache_dir, (latest_firmware_download_url | basename)] | path_join) is exists)
+
+- name: "Copy '{{ latest_firmware_download_url | basename }}'"
+  ansible.builtin.copy:
+    src: "{{ [latest_firmware_cache_dir, (latest_firmware_download_url | basename)] | path_join }}"
+    dest: "{{ [content_dir.staged_downloads, (latest_firmware_download_url | basename)] | path_join }}"
+    mode: "0644"

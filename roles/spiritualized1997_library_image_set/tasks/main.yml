@@ -1,0 +1,21 @@
+- name: Create cache directory
+  ansible.builtin.file:
+    path: "{{ s1997_lis_cache_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Get basename from download-url
+  ansible.builtin.set_fact:
+    s1997_lis_download_basename: "{{ s1997_lis_download_url | urldecode | urlsplit('path') | basename }}"
+
+- name: "Download '{{ s1997_lis_download_basename }}'"
+  ansible.builtin.get_url:
+    url: "{{ s1997_lis_download_url }}"
+    dest: "{{ [s1997_lis_cache_dir, s1997_lis_download_basename] | path_join }}"
+    mode: "0644"
+  when: not (([s1997_lis_download_url, s1997_lis_download_basename] | path_join) is exists)
+
+- name: "Extract '{{ s1997_lis_download_basename }}'"
+  ansible.builtin.unarchive:
+    src: "{{ [s1997_lis_cache_dir, s1997_lis_download_basename] | path_join }}"
+    dest: "{{ content_dir.staged_downloads }}"

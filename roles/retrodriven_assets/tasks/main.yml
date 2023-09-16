@@ -1,0 +1,71 @@
+- name: Create cache directory
+  ansible.builtin.file:
+    path: "{{ retrodriven_assets_cache_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Query RetroDriven updater page
+  ansible.builtin.uri:
+    url: "{{ retrodriven_assets_updater_url }}"
+    follow_redirects: true
+    return_content: true
+    force: true
+  register: retrodriven_assets_updater_url_response
+
+- name: Validate updater response
+  ansible.builtin.assert:
+    that:
+      - retrodriven_assets_updater_url_response.content is defined
+
+- name: Download assets
+  ansible.builtin.get_url:
+    url: "{{ retrodriven_assets_base_url }}/{{ item.name | urlencode }}"
+    dest: "{{ [retrodriven_assets_cache_dir, item.name] | path_join }}"
+    mode: "0644"
+  loop: "{{ (retrodriven_assets_updater_url_response.content | from_json).files }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: not (([retrodriven_assets_cache_dir, item.name] | path_join) is exists)
+
+- name: Search and process JSON files in 'Assets' directory
+  block:
+    - name: Find all JSON files in 'Assets' directory
+      ansible.builtin.find:
+        paths: "{{ [content_dir.staged_downloads, 'Assets'] | path_join }}"
+        patterns: '.*(\.json|\.JSON)$'
+        contains: >-
+          .*('|")instance('|").*
+        recurse: true
+        use_regex: true
+      register: retrodriven_assets_instance_json_all
+
+    - name: Process 'instance' JSON files
+      when: retrodriven_assets_instance_json_all.matched > 0
+      block:
+        - name: Check JSON files for asset info
+          ansible.builtin.include_tasks: check_json_file.yml
+          loop: "{{ retrodriven_assets_instance_json_all.files }}"
+          loop_control:
+            label: "{{ item.path | regex_replace('^' + (playbook_dir | regex_escape), '...') }}"
+          when: not (item.path is regex('.*NeoGeo.*')) # ignore NeoGeo asset files
+
+- name: Search and process JSON files in 'Cores' directory
+  block:
+    - name: Find all JSON files in 'Cores' directory
+      ansible.builtin.find:
+        paths: "{{ [content_dir.staged_downloads, 'Cores'] | path_join }}"
+        patterns: '.*(\.json|\.JSON)$'
+        contains: >-
+          .*('|")data('|").*
+        recurse: true
+        use_regex: true
+      register: retrodriven_assets_data_json_all
+
+    - name: Process 'data' JSON files
+      when: retrodriven_assets_data_json_all.matched > 0
+      block:
+        - name: Check JSON files for asset info
+          ansible.builtin.include_tasks: check_json_file.yml
+          loop: "{{ retrodriven_assets_data_json_all.files }}"
+          loop_control:
+            label: "{{ item.path | regex_replace('^' + (playbook_dir | regex_escape), '...') }}"

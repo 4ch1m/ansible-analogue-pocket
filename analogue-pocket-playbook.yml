@@ -1,0 +1,83 @@
+- name: Ansible Analogue Pocket
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars_prompt:
+    - name: execute_latest_firmware_role
+      prompt: Include [ Latest Firmware ]?
+      private: false
+      default: "yes"
+
+    - name: execute_openfpga_cores_role
+      prompt: Include [ OpenFPGA Cores ]?
+      private: false
+      default: "yes"
+
+    - name: execute_retrodriven_assets_role
+      prompt: Include [ RetroDriven Assets ]?
+      private: false
+      default: "yes"
+
+    - name: execute_megazxretro_platform_art_role
+      prompt: Include [ MegaZXretro Platform Art ]?
+      private: false
+      default: "yes"
+
+    - name: execute_spiritualized1997_library_image_set_role
+      prompt: Include [ spiritualized1997 Library Image Set ]?
+      private: false
+      default: "yes"
+
+  tasks:
+    - name: Include vars
+      ansible.builtin.include_vars:
+        dir: vars
+
+    - name: Initialize
+      ansible.builtin.include_tasks: tasks/init.yml
+
+    - name: Cleanup
+      ansible.builtin.include_tasks: tasks/cleanup.yml
+      when: >-
+        (execute_latest_firmware_role | bool)
+        or
+        (execute_openfpga_cores_role | bool)
+        or
+        (execute_retrodriven_assets_role | bool)
+        or
+        (execute_megazxretro_platform_art_role | bool)
+        or
+        (execute_spiritualized1997_library_image_set_role | bool)
+
+    ###
+
+    - name: Check 'Latest Firmware'
+      ansible.builtin.include_role:
+        name: latest_firmware
+      when: execute_latest_firmware_role | bool
+
+    - name: Process 'OpenFPGA Cores'
+      ansible.builtin.include_role:
+        name: openfpga_cores
+      when: execute_openfpga_cores_role | bool
+
+    - name: Get assets from 'RetroDriven'
+      ansible.builtin.include_role:
+        name: retrodriven_assets
+      when: execute_retrodriven_assets_role | bool
+
+    - name: Get platform art from 'MegaZXretro'
+      ansible.builtin.include_role:
+        name: megazxretro_platform_art
+      when: execute_megazxretro_platform_art_role | bool
+
+    - name: Get library image set from 'spiritualized1997'
+      ansible.builtin.include_role:
+        name: spiritualized1997_library_image_set
+      when: execute_spiritualized1997_library_image_set_role | bool
+
+    ###
+
+    - name: Merge
+      ansible.builtin.include_tasks: tasks/merge.yml

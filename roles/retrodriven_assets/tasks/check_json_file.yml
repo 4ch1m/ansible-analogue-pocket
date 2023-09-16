@@ -1,0 +1,119 @@
+- name: Set additional vars
+  ansible.builtin.set_fact:
+    retrodriven_assets_json_path_short: "{{ item.path | regex_replace('^' + (playbook_dir | regex_escape), '...') }}"
+
+- name: "Validate JSON | '{{ retrodriven_assets_json_path_short }}'"
+  ansible.builtin.script: >-
+    "{{ playbook_dir }}/venv/bin/python"
+    -m json.tool
+    "{{ item.path }}"
+  register: retrodriven_assets_json_validation
+  failed_when: false
+  changed_when: false
+
+- name: Process valid JSON file
+  when: retrodriven_assets_json_validation.rc == 0
+  block:
+    - name: "Load JSON | '{{ retrodriven_assets_json_path_short }}'"
+      ansible.builtin.set_fact:
+        retrodriven_assets_json_content: "{{ lookup('ansible.builtin.file', item.path) | from_json }}"
+
+    - name: "Initialize variable for found 'data_slots' | '{{ retrodriven_assets_json_path_short }}'"
+      ansible.builtin.set_fact:
+        retrodriven_assets_data_slots: []
+
+    - name: "Extract 'data_slots' (instance) | '{{ retrodriven_assets_json_path_short }}'"
+      ansible.builtin.set_fact:
+        retrodriven_assets_data_slots: >-
+          {{
+          retrodriven_assets_data_slots
+          +
+          retrodriven_assets_json_content.instance.data_slots
+          }}
+      when:
+        - retrodriven_assets_json_content.instance is defined
+        - retrodriven_assets_json_content.instance.data_slots is defined
+
+    - name: "Extract 'data_slots' (data) | '{{ retrodriven_assets_json_path_short }}'"
+      ansible.builtin.set_fact:
+        retrodriven_assets_data_slots: >-
+          {{
+          retrodriven_assets_data_slots
+          +
+          retrodriven_assets_json_content.data.data_slots
+          }}
+      when:
+        - retrodriven_assets_json_content.data is defined
+        - retrodriven_assets_json_content.data.data_slots is defined
+
+    - name: Extract 'filename(s)' from 'data_slots'
+      when: (retrodriven_assets_data_slots | length) > 0
+      block:
+        - name: "Initialize variable for found 'filename'(s) from 'data_slots' | '{{ retrodriven_assets_json_path_short }}'"
+          ansible.builtin.set_fact:
+            retrodriven_assets_data_slot_files: []
+
+        - name: "Check for 'filenames' from 'data_slots' | '{{ retrodriven_assets_json_path_short }}'"
+          ansible.builtin.set_fact:
+            retrodriven_assets_data_slot_files: >-
+              {{
+              retrodriven_assets_data_slot_files
+              +
+              [retrodriven_assets_data_slot.filename]
+              }}
+          loop: "{{ retrodriven_assets_data_slots }}"
+          loop_control:
+            loop_var: retrodriven_assets_data_slot
+          when: retrodriven_assets_data_slot.filename is defined
+
+        - name: Process found asset files
+          when: (retrodriven_assets_data_slot_files | length) > 0
+          block:
+            - name: "Determine 'common' dir in assets (instance.data_slots) | '{{ retrodriven_assets_json_path_short }}'"
+              ansible.builtin.set_fact:
+                retrodriven_assets_core_common_dir: >-
+                  {{
+                  [content_dir.staged_downloads, 'Assets', (item.path | regex_findall('.*\/Assets\/([^\/]*)\/.*', '\\1') | first), 'common']
+                  |
+                  path_join
+                  }}
+              when: item.path is match ('^' + ([(content_dir.staged_downloads | regex_escape), 'Assets'] | path_join) + '.*')
+
+            - name: Determine 'common' dir in assets (data.data_slots)
+              when:
+                - item.path is match ('^' + ([(content_dir.staged_downloads | regex_escape), 'Cores'] | path_join) + '.*')
+                - ([(item.path | dirname), 'core.json'] | path_join) is exists
+              block:
+                - name: "Load 'core' JSON | '{{ [(retrodriven_assets_json_path_short | dirname), 'core.json'] | path_join }}'"
+                  ansible.builtin.set_fact:
+                    retrodriven_assets_json_core_content: >-
+                      {{
+                      lookup('ansible.builtin.file', ([(item.path | dirname), 'core.json'] | path_join))
+                      |
+                      from_json
+                      }}
+
+                - name: "Determine 'common' dir in assets (data.data_slots) | '{{ retrodriven_assets_json_path_short }}'"
+                  ansible.builtin.set_fact:
+                    retrodriven_assets_core_common_dir: >-
+                      {{
+                      [content_dir.staged_downloads, 'Assets', (retrodriven_assets_json_core_content.core.metadata.platform_ids | first), 'common']
+                      |
+                      path_join
+                      }}
+
+            - name: "Make sure the 'common' target dir exists | '{{ retrodriven_assets_json_path_short }}'"
+              ansible.builtin.file:
+                path: "{{ retrodriven_assets_core_common_dir }}"
+                state: directory
+                mode: "0755"
+
+            - name: "Copy asset files | '{{ retrodriven_assets_json_path_short }}'"
+              ansible.builtin.copy:
+                src: "{{ [retrodriven_assets_cache_dir, retrodriven_assets_data_slot_file] | path_join }}"
+                dest: "{{ [retrodriven_assets_core_common_dir, retrodriven_assets_data_slot_file] | path_join }}"
+                mode: "0644"
+              loop: "{{ retrodriven_assets_data_slot_files }}"
+              loop_control:
+                loop_var: retrodriven_assets_data_slot_file
+              when: ([retrodriven_assets_cache_dir, retrodriven_assets_data_slot_file] | path_join) is exists

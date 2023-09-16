@@ -1,0 +1,5 @@
+content_dir:
+  cached_downloads: "{{ [playbook_dir, 'content', '.cached_downloads'] | path_join }}"
+  staged_downloads: "{{ [playbook_dir, 'content', '.staged_downloads'] | path_join }}"
+  custom: "{{ [playbook_dir, 'content', 'custom'] | path_join }}"
+  sdcard: "{{ [playbook_dir, 'content', 'sdcard'] | path_join }}"

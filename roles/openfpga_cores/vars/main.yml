@@ -1,0 +1,1 @@
+openfpga_cores_cache_dir: "{{ [content_dir.cached_downloads, 'openfpga_cores'] | path_join }}"

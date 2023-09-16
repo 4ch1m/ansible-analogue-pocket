@@ -1,0 +1,15 @@
+- name: Sync 'staged downloads' into 'sd card'
+  ansible.posix.synchronize:
+    src: "{{ content_dir.staged_downloads }}/"
+    dest: "{{ content_dir.sdcard }}/"
+    rsync_opts: >-
+      {{
+      rsync_excludes
+      +
+      (custom_rsync_excludes | default([]))
+      }}
+
+- name: Sync 'custom' into 'sd card'
+  ansible.posix.synchronize:
+    src: "{{ content_dir.custom }}/"
+    dest: "{{ content_dir.sdcard }}/"

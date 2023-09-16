@@ -1,0 +1,1 @@
+s1997_lis_cache_dir: "{{ [content_dir.cached_downloads, 'spiritualized1997_library_image_set'] | path_join }}"

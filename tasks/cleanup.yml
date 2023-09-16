@@ -1,0 +1,17 @@
+- name: "Clean '{{ content_dir.staged_downloads | basename }}'"
+  ansible.builtin.file:
+    path: "{{ content_dir.staged_downloads }}"
+    state: "{{ item }}"
+    mode: "0755"
+  loop:
+    - absent
+    - directory
+
+- name: "Clean '{{ content_dir.sdcard | basename }}'"
+  ansible.builtin.file:
+    path: "{{ content_dir.sdcard }}"
+    state: "{{ item }}"
+    mode: "0755"
+  loop:
+    - absent
+    - directory
