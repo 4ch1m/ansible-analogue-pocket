@@ -21,7 +21,7 @@
 
 * [Disclaimer](#raised_hand-disclaimer)
 * [Concept / Structure](#open_file_folder-concept--structure)
-* [Features](#heavy_check_mark-features)
+* [Features](#gift-features)
 * [Requirements](#toolbox-requirements)
 * [Installation](#package-installation)
 * [Usage](#rocket-usage)
