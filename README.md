@@ -49,7 +49,7 @@ And why Ansible???
 
 Instead of directly working on a SD card and downloading/modifying content in place, I prefer to start with a "clean slate" every time I run the script/playbook; making sure there are no "leftovers" from previous downloads/installations.
 
-So the playbook (which includes several modularized "roles") will clean the actual target directory with every run and freshly compile all content from several sources.
+So the playbook (which includes several modularized "roles") will clean the actual target directory (located on my PC's HDD/SDD) with every run and freshly compile all content from several sources.
 
 ```text
 ┌─────────────────────────────────────────┐
@@ -97,7 +97,7 @@ These are the general execution steps:
 
 The `custom` folder is the place where you will have to put your own games, roms, firmwares, etc.
 
-The folder-structure must match the path as expected based on the root of the SC card!
+The directory structure must match the Pocket's original SD card structure!
 
 ```text
 .
@@ -117,12 +117,12 @@ The folder-structure must match the path as expected based on the root of the SC
 .
 ```
 
-## :heavy_check_mark: Features
+## :gift: Features
 
 All main features are implemented in dedicated roles:
 
-| Role                                                                             | Description                                                                                                                                                           |
-|:---------------------------------------------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Role                                                                             | Description                                                                                                                                             |
+|:---------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [latest_firmware](roles/latest_firmware)                                         | download **firmware** files from the official [Analogue](https://www.analogue.co/support) support site                                                  |
 | [openfpga_cores](roles/openfpga_cores)                                           | download **cores** from the official [openFPGA Cores](https://openfpga-cores-inventory.github.io/analogue-pocket/) inventory                            |
 | [retrodriven_assets](roles/retrodriven_assets)                                   | download curated **assets** from [RetroDriven](https://github.com/RetroDriven)'s repository                                                             |
@@ -206,7 +206,7 @@ custom_megazxretro_platform_art_region_filename: USA.ZIP
 
 Thanks to ...
 
-* all the authors of [OpenFPGA Cores](https://openfpga-cores-inventory.github.io/analogue-pocket/) that make all this possible!
+* all the authors of [OpenFPGA Cores](https://openfpga-cores-inventory.github.io/analogue-pocket/) who make all this possible!
 * [RetroDriven](https://github.com/RetroDriven) for providing validated assets
 * [MegaZXretro](https://github.com/MegaZXretro) for the [Custom Platform Art](https://github.com/MegaZXretro/Analogue-Pocket-Custom-Platform-Art)
 * [spiritualized1997](https://github.com/spiritualized1997) for  the great [Library Image Set](https://www.reddit.com/r/AnalogueInc/comments/wbcvpp/analogue_pocket_library_image_set/)
