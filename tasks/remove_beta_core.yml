@@ -1,0 +1,18 @@
+- name: "Remove \"Beta\" Cores | Load data JSON file for '{{ sdcard_core_path | basename }}'"
+  ansible.builtin.set_fact:
+    core_data_json_content: >-
+      {{
+      lookup('ansible.builtin.file', [sdcard_core_path, 'data.json'] | path_join)
+      |
+      from_json
+      }}
+  when: ([sdcard_core_path, 'data.json'] | path_join) is exists
+
+- name: "Remove \"Beta\" Cores | Remove '{{ sdcard_core_path | basename }}'"
+  ansible.builtin.file:
+    path: "{{ sdcard_core_path }}"
+    state: absent
+  when:
+    - core_data_json_content.data is defined
+    - core_data_json_content.data.data_slots is defined
+    - core_data_json_content.data.data_slots | selectattr('name', 'match', 'JTBETA') | length > 0

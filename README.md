@@ -168,18 +168,22 @@ rsync \
   --recursive \
   --times \
   --whole-file \
-  --bwlimit=5000 \
   --delete \
   --delete-before \
   --progress \
+  --stats \
   --temp-dir=$(mktemp --directory --suffix "_aap") \
+  --exclude '/GB*Studio' \
+  --exclude '/Memories' \
   --exclude '/Saves' \
+  --exclude '/Settings' \
+  --exclude '/System/*_cache.bin' \
   --exclude '/Analogue_Pocket.json' \
   ./content/sdcard/ \
   <path-to-your-actual-sdcard>
 ```
 
-(Note: The bandwidth is limited due to reduced throughput to the SD card; also the `/Saves`directory and `/Analogue_Pocket.json` file remain untouched.)
+(Note: Some directories and cache-files should be ignored. The `/Analogue_Pocket.json` file is also excluded from the sync.)
 
 ## :screwdriver: Configuration
 
@@ -200,6 +204,9 @@ custom_rsync_excludes:
 
 # use US platform artwork, instead of PAL-EU
 custom_megazxretro_platform_art_region_filename: USA.ZIP
+
+# remove "JTBETA" cores
+remove_beta_cores: true
 ```
 
 ## :star: Credits

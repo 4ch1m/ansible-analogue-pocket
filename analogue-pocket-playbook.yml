@@ -81,3 +81,20 @@
 
     - name: Merge
       ansible.builtin.include_tasks: tasks/merge.yml
+
+    - name: Remove "Beta" Cores
+      when: remove_beta_cores | default(false)
+      block:
+        - name: Remove "Beta" Cores | Find all 'Cores' in 'sd card'
+          ansible.builtin.find:
+            paths: "{{ [content_dir.sdcard, 'Cores'] | path_join }}"
+            file_type: directory
+            recurse: false
+          register: sdcard_cores
+
+        - name: "Remove \"Beta\" Cores | Process '{{ sdcard_core_path | basename }}'"
+          ansible.builtin.include_tasks: tasks/remove_beta_core.yml
+          loop: "{{ sdcard_cores.files | map(attribute='path') }}"
+          loop_control:
+            loop_var: sdcard_core_path
+          when: sdcard_cores.matched > 0
