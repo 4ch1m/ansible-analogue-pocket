@@ -31,7 +31,7 @@
 
 ## :raised_hand: Disclaimer
 
-This project is (obviously) inspired by [Matt Pannella](https://github.com/mattpannella)'s excellent [Analogue Pocket Updater Utility ](https://github.com/mattpannella/pocket-updater-utility).
+This project is (obviously) inspired by [Matt Pannella](https://github.com/mattpannella)'s excellent [Analogue Pocket Updater Utility](https://github.com/mattpannella/pocket-updater-utility).
 
 It does not claim to be simpler, faster, or better in any way.
 
@@ -205,8 +205,11 @@ custom_rsync_excludes:
 # use US platform artwork, instead of PAL-EU
 custom_megazxretro_platform_art_region_filename: USA.ZIP
 
-# remove "JTBETA" cores
-remove_beta_cores: true
+# remove 'JTBETA' cores (default = 'false')
+remove_jt_beta_cores: true
+
+# automatically rename 'jt' cores; e.g. 'jtbubl' -> 'Bubble Bobble' (default = 'false')
+rename_jt_cores: true
 ```
 
 ## :star: Credits
@@ -217,6 +220,7 @@ Thanks to ...
 * [RetroDriven](https://github.com/RetroDriven) for providing validated assets
 * [MegaZXretro](https://github.com/MegaZXretro) for the [Custom Platform Art](https://github.com/MegaZXretro/Analogue-Pocket-Custom-Platform-Art)
 * [spiritualized1997](https://github.com/spiritualized1997) for  the great [Library Image Set](https://www.reddit.com/r/AnalogueInc/comments/wbcvpp/analogue_pocket_library_image_set/)
+* [dyreschlock](https://github.com/dyreschlock) for the [Pocket Platform Images](https://github.com/dyreschlock/pocket-platform-images) repo
 
 ## :balance_scale: License
 

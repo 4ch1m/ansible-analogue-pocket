@@ -1,0 +1,21 @@
+- name: "Rename 'jt' Cores : Read 'Pocket Platform Images' file | '{{ pocket_platform_images_jt_json_file.path | basename }}'"
+  ansible.builtin.set_fact:
+    pocket_platform_images_jt_json_name: "{{ (pocket_platform_images_jt_json_file.path | basename | splitext | first) }}"
+    pocket_platform_images_jt_json_content: >-
+      {{
+      lookup('ansible.builtin.file', pocket_platform_images_jt_json_file.path)
+      |
+      from_json
+      }}
+
+- name: "Rename 'jt' Cores : Add core to dictionary | '{{ pocket_platform_images_jt_json_name }}'"
+  ansible.builtin.set_fact:
+    jt_core_names: >-
+      {{
+      jt_core_names
+      |
+      combine({
+          (pocket_platform_images_jt_json_file.path | basename | splitext | first):
+            pocket_platform_images_jt_json_content.platform.name
+        })
+      }}

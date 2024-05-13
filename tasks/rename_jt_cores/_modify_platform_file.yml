@@ -1,0 +1,31 @@
+- name: "Rename 'jt' Cores : Set additional vars"
+  ansible.builtin.set_fact:
+    platforms_jt_core_name_key: "{{ platforms_jt_json_file.path | basename | splitext | first }}"
+
+- name: "Rename 'jt' Cores : Modify 'Platforms' file"
+  when: platforms_jt_core_name_key in jt_core_names
+  block:
+    - name: "Rename 'jt' Cores : Read 'Platforms' file | '{{ platforms_jt_json_file.path | basename }}'"
+      ansible.builtin.set_fact:
+        platforms_jt_json_file_content: >-
+          {{
+          lookup('ansible.builtin.file', platforms_jt_json_file.path)
+          |
+          from_json
+          }}
+
+    - name: "Rename 'jt' Cores : Modify 'Platforms' file | '{{ platforms_jt_json_file.path | basename }}'"
+      ansible.builtin.copy:
+        content: >-
+          {{
+          platforms_jt_json_file_content
+          |
+          combine(
+              {'platform': {'name': jt_core_names[platforms_jt_core_name_key]}},
+              recursive=true
+            )
+          |
+          to_nice_json(indent=4)
+          }}
+        dest: "{{ platforms_jt_json_file.path }}"
+        mode: "0644"

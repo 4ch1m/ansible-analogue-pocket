@@ -1,0 +1,2 @@
+pocket_platform_images_repo_url: https://github.com/dyreschlock/pocket-platform-images.git
+pocket_platform_images_cache_dir: "{{ [content_dir.cached_downloads, 'pocket_platform_images'] | path_join }}"

@@ -1,0 +1,44 @@
+- name: "Rename 'jt' Cores : Init vars"
+  ansible.builtin.set_fact:
+    jt_core_names: {}
+
+- name: "Rename 'jt' Cores : Clone 'Pocket Platform Images' repo" # noqa: latest[git]
+  ansible.builtin.git:
+    repo: "{{ pocket_platform_images_repo_url }}"
+    dest: "{{ pocket_platform_images_cache_dir }}/"
+    force: true
+    depth: 1
+
+- name: "Rename 'jt' Cores : Handle 'Pocket Platform Images'"
+  block:
+    - name: "Rename 'jt' Cores : Find all 'jt'-json-files in 'Pocket Platform Images'"
+      ansible.builtin.find:
+        paths: "{{ [pocket_platform_images_cache_dir, 'arcade', 'Platforms'] | path_join }}"
+        patterns: '^jt.*(\.json|\.JSON)$'
+        use_regex: true
+      register: pocket_platform_images_jt_json_find
+
+    - name: "Rename 'jt' Cores : Process all 'jt'-json-files from 'Pocket Platform Images'"
+      when: pocket_platform_images_jt_json_find.matched > 0
+      ansible.builtin.include_tasks: _add_core_to_dict.yml
+      loop: "{{ pocket_platform_images_jt_json_find.files }}"
+      loop_control:
+        loop_var: pocket_platform_images_jt_json_file
+        label: "{{ pocket_platform_images_jt_json_file.path | basename }}"
+
+- name: "Rename 'jt' Cores : Handle 'Platforms'"
+  block:
+    - name: "Rename 'jt' Cores : Find all 'jt'-json-files in 'Platforms'"
+      ansible.builtin.find:
+        paths: "{{ [content_dir.sdcard, 'Platforms'] | path_join }}"
+        patterns: '^jt.*(\.json|\.JSON)$'
+        use_regex: true
+      register: platforms_jt_json_find
+
+    - name: "Rename 'jt' Cores : Process all 'jt'-json-files from 'Platforms'"
+      when: platforms_jt_json_find.matched > 0
+      ansible.builtin.include_tasks: _modify_platform_file.yml
+      loop: "{{ platforms_jt_json_find.files }}"
+      loop_control:
+        loop_var: platforms_jt_json_file
+        label: "{{ platforms_jt_json_file.path | basename }}"

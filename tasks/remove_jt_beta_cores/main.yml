@@ -1,0 +1,13 @@
+- name: "Remove 'JTBETA' Cores : Find all 'Cores'"
+  ansible.builtin.find:
+    paths: "{{ [content_dir.sdcard, 'Cores'] | path_join }}"
+    file_type: directory
+    recurse: false
+  register: sdcard_cores
+
+- name: "Remove 'JTBETA' Cores : Process core"
+  ansible.builtin.include_tasks: tasks/remove_jt_beta_cores/_remove_jt_beta_core.yml
+  loop: "{{ sdcard_cores.files | map(attribute='path') }}"
+  loop_control:
+    loop_var: sdcard_core_path
+  when: sdcard_cores.matched > 0

@@ -64,7 +64,9 @@
           loop: "{{ retrodriven_assets_data_slots }}"
           loop_control:
             loop_var: retrodriven_assets_data_slot
-          when: retrodriven_assets_data_slot.filename is defined
+          when:
+            - retrodriven_assets_data_slot.filename is defined
+            - (retrodriven_assets_data_slot.filename | trim | length) > 0
 
         - name: Process found asset files
           when: (retrodriven_assets_data_slot_files | length) > 0
