@@ -208,8 +208,15 @@ custom_megazxretro_platform_art_region_filename: USA.ZIP
 # remove 'JTBETA' cores (default = 'false')
 remove_jt_beta_cores: true
 
-# automatically rename 'jt' cores; e.g. 'jtbubl' -> 'Bubble Bobble' (default = 'false')
+# automatically rename 'jt' cores (using metadata from 'pocket-platform-images' by dyreschlock); e.g. 'jtbubl' -> 'Bubble Bobble' (default = 'false')
 rename_jt_cores: true
+
+# custom core naming (which will be applied as a final step)
+custom_core_names:
+  jtaliens: Aliens
+  jtkiwi: The NewZealand Story
+  jtsimson: The Simpsons
+  jttmnt: Teenage Mutant Ninja Turtles
 ```
 
 ## :star: Credits

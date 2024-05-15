@@ -27,6 +27,8 @@
       path_join
       }}
     dest: "{{ megazxretro_platform_art_temp_dir.path }}"
+    exclude:
+      - '*.json'
 
 - name: Find 'Platforms' directory
   ansible.builtin.find:

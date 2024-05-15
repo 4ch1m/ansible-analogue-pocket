@@ -1,0 +1,38 @@
+- name: "Custom Core Name : Find 'Platforms' file '{{ custom_core_name.key }}'"
+  ansible.builtin.find:
+    paths: "{{ [content_dir.sdcard, 'Platforms'] | path_join }}"
+    patterns: '^{{ custom_core_name.key }}(\.json|\.JSON)$'
+    use_regex: true
+  register: custom_core_name_json_find
+
+- name: "Custom Core Name : Process 'Platforms' file"
+  when: custom_core_name_json_find.matched == 1
+  block:
+    - name: "Custom Core Name : Set derived facts"
+      ansible.builtin.set_fact:
+        platforms_json_file_path: "{{ (custom_core_name_json_find.files | first).path }}"
+
+    - name: "Custom Core Name : Read 'Platforms' file | '{{ platforms_json_file_path | basename }}'"
+      ansible.builtin.set_fact:
+        platforms_json_file_content: >-
+          {{
+          lookup('ansible.builtin.file', platforms_json_file_path)
+          |
+          from_json
+          }}
+
+    - name: "Custom Core Name : Modify 'Platforms' file | '{{ platforms_json_file_path | basename }}'"
+      ansible.builtin.copy:
+        content: >-
+          {{
+          platforms_json_file_content
+          |
+          combine(
+              {'platform': {'name': custom_core_name.value}},
+              recursive=true
+            )
+          |
+          to_nice_json(indent=4)
+          }}
+        dest: "{{ platforms_json_file_path }}"
+        mode: "0644"

@@ -95,3 +95,15 @@
       when:
         - execute_openfpga_cores_role | bool
         - rename_jt_cores | default(false)
+
+    ###
+
+    - name: Set custom core names
+      ansible.builtin.include_tasks: tasks/custom_core_name.yml
+      loop: "{{ custom_core_names | dict2items }}"
+      loop_control:
+        label: "{{ custom_core_name.key }}"
+        loop_var: custom_core_name
+      when:
+        - custom_core_names is defined
+        - (custom_core_names | length) > 0
